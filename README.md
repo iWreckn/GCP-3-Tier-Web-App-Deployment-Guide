@@ -6,7 +6,7 @@ A comprehensive security-focused lab that teaches GCP security fundamentals by b
 
 ## 🎯 Learning Objectives
 
-By completing this lab, you will master:
+By completing this lab, you will be comfortable with:
 
 ### **Network Security**
 - ✅ VPC design and network segmentation strategies
@@ -472,20 +472,6 @@ gcloud compute firewall-rules delete allow-web-public allow-ssh-management allow
 gcloud compute networks subnets delete web-dmz app-internal data-zone --region=us-central1 -q
 gcloud compute networks delete secure-app-vpc -q
 ```
-
-## 📚 Next Steps
-
-**Advanced Security Labs:**
-- Implement Zero Trust with Identity-Aware Proxy
-- Add Cloud Armor WAF protection
-- Configure VPC Flow Logs and monitoring
-- Deploy with Terraform for Infrastructure as Code
-- Implement CI/CD security scanning
-
-**Certification Paths:**
-- Professional Cloud Security Engineer
-- Professional Cloud Architect
-- Professional Cloud Network Engineer
 
 ---
 
