@@ -270,7 +270,7 @@ gcloud compute addresses describe lb-ipv4-1 --global --format="get(address)"
 - **Managed Services**: Reduces operational overhead
 - **Auto-scaling**: MIG can scale based on demand
 
-## 🧹 Cleanup
+## 🧹 Cleanup DONT FORGET TO CLEANUP
 
 **Important**: Delete resources in reverse order to avoid dependency issues.
 
