@@ -305,7 +305,7 @@ gcloud compute networks delete my-app-vpc -q
 - Configure Nginx as a reverse proxy to forward requests to the app tier
 - Implement HTTPS with SSL certificates
 - Set up monitoring and alerting
-- Add auto-scaling policies
+- Add auto-scaling policies   
 - Implement CI/CD pipeline
 
 ## 📚 Resources
