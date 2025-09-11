@@ -1,0 +1,168 @@
+
+Here’s your checklist for deploying the 3-tier network manually. Each part corresponds directly to the resources in your main.tf file.
+
+Part 1: Create the Custom VPC
+This is our main container, the google_compute_network resource.
+
+✅ Navigate to VPC Networks:
+
+In the GCP Console, click the Navigation menu (☰) in the top-left.
+
+Scroll down to VPC network ➡️ VPC networks.
+
+✅ Create the VPC:
+
+Click CREATE VPC NETWORK at the top.
+
+Name: my-app-vpc
+
+Subnet creation mode: Select Custom. This is the GUI equivalent of auto_create_subnetworks = false. It's a critical security step!
+
+Leave the rest as default for now.
+
+✅ Create the Subnets (The Tiers):
+
+While still on the "Create a VPC network" page, in the Subnets section, click ADD SUBNET.
+
+Subnet 1: The Web Tier
+
+Name: web-subnet
+
+Region: us-central1
+
+IPv4 range: 10.0.1.0/24
+
+Click Done.
+
+Subnet 2: The App Tier
+
+Click ADD SUBNET again.
+
+Name: app-subnet
+
+Region: us-central1
+
+IPv4 range: 10.0.2.0/24
+
+Click Done.
+
+Subnet 3: The Data Tier
+
+Click ADD SUBNET one more time.
+
+Name: data-subnet
+
+Region: us-central1
+
+IPv4 range: 10.0.3.0/24
+
+Click Done.
+
+✅ Finalize VPC Creation:
+
+Scroll to the bottom and click Create. Give it a minute or two to provision.
+
+Part 2: Implement the Firewall Rules
+Now we're building the locked hatches between our compartments. These are the google_compute_firewall resources.
+
+✅ Navigate to Firewall:
+
+In the Navigation menu (☰), go to VPC network ➡️ Firewall.
+
+✅ Rule 1: Allow Public HTTP/HTTPS to Web Tier (allow-http-https-web)
+
+Click CREATE FIREWALL RULE.
+
+Name: allow-http-https-web
+
+Network: Select my-app-vpc from the dropdown.
+
+Direction of traffic: Ingress
+
+Targets: Specified target tags
+
+Target tags: web-server
+
+Source filter: IPv4 ranges
+
+Source IPv4 ranges: 0.0.0.0/0
+
+Protocols and ports: Select Specified protocols and ports, check TCP, and enter 80, 443 in the text box.
+
+Click Create.
+
+✅ Rule 2: Allow SSH to Web Tier (allow-ssh-web)
+
+Click CREATE FIREWALL RULE again.
+
+Name: allow-ssh-web
+
+Network: my-app-vpc
+
+Direction of traffic: Ingress
+
+Targets: Specified target tags
+
+Target tags: web-server
+
+Source filter: IPv4 ranges
+
+Source IPv4 ranges: 0.0.0.0/0 (Remind your audience this should be locked down to a specific IP in production!)
+
+Protocols and ports: Select Specified protocols and ports, check TCP, and enter 22.
+
+Click Create.
+
+✅ Rule 3: Allow Web Tier to App Tier (allow-web-to-app)
+
+Click CREATE FIREWALL RULE.
+
+Name: allow-web-to-app
+
+Network: my-app-vpc
+
+Direction of traffic: Ingress
+
+Targets: Specified target tags
+
+Target tags: app-server
+
+Source filter: Source tags
+
+Source tags: web-server
+
+Protocols and ports: Select Specified protocols and ports, check TCP, and enter 3000.
+
+Click Create.
+
+✅ Rule 4: Allow App Tier to Data Tier (allow-app-to-db)
+
+Click CREATE FIREWALL RULE.
+
+Name: allow-app-to-db
+
+Network: my-app-vpc
+
+Direction of traffic: Ingress
+
+Targets: Specified target tags
+
+Target tags: db-server
+
+Source filter: Source tags
+
+Source tags: app-server
+
+Protocols and ports: Select Specified protocols and ports, check TCP, and enter 5432.
+
+Click Create.
+
+The Final Check (Verification)
+This part is crucial for your tutorial! It mirrors your "Verify Your Work" section.
+
+Check the VPC: Is my-app-vpc listed under VPC networks?
+
+Check the Subnets: Click on my-app-vpc. Do you see web-subnet, app-subnet, and data-subnet with the correct IP ranges?
+
+Check the Firewall Rules: Go to the Firewall page. Use the filter to show only rules for the my-app-vpc network. Can you see all four of your new rules? Click into each one to double-check that the source/target tags and ports are correct.
+
