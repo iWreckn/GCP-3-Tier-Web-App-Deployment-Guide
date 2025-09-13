@@ -9,43 +9,43 @@ terraform {
 
 # Create Custom VPC
 resource "google_compute_network" "my_app_vpc" {
-  name                    = "my-3tier-app-vpc"
+  name                    = var.vpc_name
   auto_create_subnetworks = false
-  project                 = "your-project-id-here"
+  project                 = var.project_id
 }
 
 # Create the Web Tier Subnet
 resource "google_compute_subnetwork" "web_subnet" {
-  name          = "test-web-subnet"
-  ip_cidr_range = "10.0.1.0/24"
-  region        = "us-central1"
+  name          = "${var.environment}-web-subnet"
+  ip_cidr_range = var.web_subnet_cidr
+  region        = var.region
   network       = google_compute_network.my_app_vpc.id
-  project       = "your-project-id-here"
+  project       = var.project_id
 }
 
 # Create the App Tier Subnet
 resource "google_compute_subnetwork" "app_subnet" {
-  name          = "test-app-subnet"
-  ip_cidr_range = "10.0.2.0/24"
-  region        = "us-central1"
+  name          = "${var.environment}-app-subnet"
+  ip_cidr_range = var.app_subnet_cidr
+  region        = var.region
   network       = google_compute_network.my_app_vpc.id
-  project       = "your-project-id-here"
+  project       = var.project_id
 }
 
 # Create the Data Tier Subnet
 resource "google_compute_subnetwork" "data_subnet" {
-  name          = "test-data-subnet"
-  ip_cidr_range = "10.0.3.0/24"
-  region        = "us-central1"
+  name          = "${var.environment}-data-subnet"
+  ip_cidr_range = var.data_subnet_cidr
+  region        = var.region
   network       = google_compute_network.my_app_vpc.id
-  project       = "your-project-id-here"
+  project       = var.project_id
 }
 
 # Allow public HTTP/HTTPS traffic to the web tier
 resource "google_compute_firewall" "allow_http_https_web" {
-  name     = "test-allow-http-https-web"
+  name     = "${var.environment}-allow-http-https-web"
   network  = google_compute_network.my_app_vpc.name
-  project  = "your-project-id-here"
+  project  = var.project_id
   priority = 1000
 
   allow {
@@ -59,9 +59,9 @@ resource "google_compute_firewall" "allow_http_https_web" {
 
 # Allow SSH access to web tier
 resource "google_compute_firewall" "allow_ssh_web" {
-  name     = "test-allow-ssh-web"
+  name     = "${var.environment}-allow-ssh-web"
   network  = google_compute_network.my_app_vpc.name
-  project  = "your-project-id-here"
+  project  = var.project_id
   priority = 1001
 
   allow {
@@ -75,9 +75,9 @@ resource "google_compute_firewall" "allow_ssh_web" {
 
 # Allow web tier to communicate with app tier
 resource "google_compute_firewall" "allow_web_to_app" {
-  name     = "test-allow-web-to-app"
+  name     = "${var.environment}-allow-web-to-app"
   network  = google_compute_network.my_app_vpc.name
-  project  = "your-project-id-here"
+  project  = var.project_id
   priority = 1002
 
   allow {
@@ -91,9 +91,9 @@ resource "google_compute_firewall" "allow_web_to_app" {
 
 # Allow app tier to communicate with data tier
 resource "google_compute_firewall" "allow_app_to_db" {
-  name     = "test-allow-app-to-db"
+  name     = "${var.environment}-allow-app-to-db"
   network  = google_compute_network.my_app_vpc.name
-  project  = "your-project-id-here"
+  project  = var.project_id
   priority = 1003
 
   allow {
