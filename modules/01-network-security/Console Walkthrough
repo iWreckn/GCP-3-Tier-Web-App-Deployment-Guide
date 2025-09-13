@@ -24,10 +24,7 @@ Configure the following:
 
 Name: my-app-vpc
 Subnet creation mode: Select Custom
-
 ⚠️ Critical Security Step: This is equivalent to auto_create_subnetworks = false in Terraform
-
-
 
 
 Leave remaining settings as default
@@ -43,7 +40,6 @@ Name: web-subnet
 Region: us-central1
 IPv4 range: 10.0.1.0/24
 
-
 Click Done
 
 ⚙️ Subnet 2: App Tier
@@ -55,7 +51,6 @@ Name: app-subnet
 Region: us-central1
 IPv4 range: 10.0.2.0/24
 
-
 Click Done
 
 🗄️ Subnet 3: Data Tier
@@ -66,7 +61,6 @@ Configure:
 Name: data-subnet
 Region: us-central1
 IPv4 range: 10.0.3.0/24
-
 
 Click Done
 
@@ -83,6 +77,13 @@ Navigate to Firewall
 In the Navigation menu (☰), go to VPC network → Firewall
 
 🌍 Rule 1: Allow Public HTTP/HTTPS to Web Tier
+Security Significance: This is your public gateway - the only rule that allows traffic from the entire internet (0.0.0.0/0). It enables users to access your website/application through standard web ports.
+
+Port 80: HTTP traffic (unencrypted)
+Port 443: HTTPS traffic (encrypted, preferred)
+Target: Only affects servers tagged web-server
+
+
 Resource: allow-http-https-web
 
 Click CREATE FIREWALL RULE
@@ -91,6 +92,7 @@ Configure:
 Name: allow-http-https-web
 Network: Select my-app-vpc
 Direction of traffic: Ingress
+Priority: 1000
 Targets: Specified target tags
 Target tags: web-server
 Source filter: IPv4 ranges
@@ -101,12 +103,15 @@ Select Specified protocols and ports
 Check TCP
 Enter 80, 443
 
-
-
-
 Click Create
 
 🔐 Rule 2: Allow SSH to Web Tier
+Security Significance: This is your administrative access to web servers. It's necessary for management but creates a security risk.
+
+Port 22: SSH (Secure Shell) for remote server access
+Risk: Currently open to the world - major security vulnerability!
+Best Practice: Restrict to your office IP or VPN range in production
+
 Resource: allow-ssh-web
 
 Click CREATE FIREWALL RULE
@@ -115,13 +120,13 @@ Configure:
 Name: allow-ssh-web
 Network: my-app-vpc
 Direction of traffic: Ingress
+Priority: 1001
 Targets: Specified target tags
 Target tags: web-server
 Source filter: IPv4 ranges
 Source IPv4 ranges: 0.0.0.0/0
 
-⚠️ Production Note: Lock this down to specific IP ranges in production!
-
+⚠️ Production Note: Lock this down to specific IP ranges in later segment once we have IP addresses!
 
 Protocols and ports:
 
@@ -129,12 +134,15 @@ Select Specified protocols and ports
 Check TCP
 Enter 22
 
-
-
-
 Click Create
 
 🔄 Rule 3: Allow Web Tier to App Tier
+Security Significance: This implements tier isolation - web servers can talk to app servers, but nothing else can.
+
+Port 3000: Common Node.js/Express application port
+Source Tags: Only web-server tagged instances can initiate this connection
+Zero Trust: App servers are completely isolated from the internet
+
 Resource: allow-web-to-app
 
 Click CREATE FIREWALL RULE
@@ -143,6 +151,7 @@ Configure:
 Name: allow-web-to-app
 Network: my-app-vpc
 Direction of traffic: Ingress
+Priority: 1002
 Targets: Specified target tags
 Target tags: app-server
 Source filter: Source tags
@@ -153,12 +162,15 @@ Select Specified protocols and ports
 Check TCP
 Enter 3000
 
-
-
-
 Click Create
 
 🗃️ Rule 4: Allow App Tier to Data Tier
+Security Significance: This is your database protection layer - only application servers can reach the database.
+
+Port 5432: PostgreSQL database port
+Source Tags: Only app-server tagged instances can connect
+Maximum Security: Database tier has no internet access whatsoever
+
 Resource: allow-app-to-db
 
 Click CREATE FIREWALL RULE
@@ -167,6 +179,7 @@ Configure:
 Name: allow-app-to-db
 Network: my-app-vpc
 Direction of traffic: Ingress
+Priority: 1003
 Targets: Specified target tags
 Target tags: db-server
 Source filter: Source tags
@@ -177,11 +190,9 @@ Select Specified protocols and ports
 Check TCP
 Enter 5432
 
-
-
-
 Click Create
 
+Key Principle: Each tier can only communicate with the next tier, creating a secure "chain of trust" that prevents lateral movement if one layer is compromised.RetryClaude does not have the ability to run the code it generates yet.
 
 ✅ Final Verification
 VPC Verification
@@ -227,13 +238,4 @@ Internet
 │  │    :22      │    │             │    │             │  │
 │  └─────────────┘    └─────────────┘    └─────────────┘  │
 └─────────────────────────────────────────────────────────┘
-📚 Next Steps
-Once your network is deployed, you can:
-
-Deploy compute instances to each subnet with appropriate network tags
-Configure load balancers for the web tier
-Set up database instances in the data tier
-Implement monitoring and logging
-
-
 🔧 This guide corresponds directly to your Terraform configuration and can be used for learning, testing, or emergency manual deployments.
