@@ -1,0 +1,239 @@
+🏗️ Manual Deployment Guide: 3-Tier Network Architecture
+This comprehensive guide walks you through manually deploying a secure 3-tier network architecture in Google Cloud Platform. Each step corresponds directly to the resources defined in your main.tf file.
+📋 Overview
+We'll be creating:
+
+Custom VPC with three isolated subnets
+Web Tier (10.0.1.0/24) - Public-facing layer
+App Tier (10.0.2.0/24) - Application logic layer
+Data Tier (10.0.3.0/24) - Database layer
+Firewall Rules - Secure communication between tiers
+
+
+🚀 Part 1: Create the Custom VPC
+This creates your main container - the google_compute_network resource.
+Step 1: Navigate to VPC Networks
+
+In the GCP Console, click the Navigation menu (☰) in the top-left
+Navigate to VPC network → VPC networks
+
+Step 2: Create the VPC
+
+Click CREATE VPC NETWORK at the top
+Configure the following:
+
+Name: my-app-vpc
+Subnet creation mode: Select Custom
+
+⚠️ Critical Security Step: This is equivalent to auto_create_subnetworks = false in Terraform
+
+
+
+
+Leave remaining settings as default
+
+Step 3: Create the Subnets (The Three Tiers)
+While still on the "Create a VPC network" page, add each subnet:
+🌐 Subnet 1: Web Tier
+
+In the Subnets section, click ADD SUBNET
+Configure:
+
+Name: web-subnet
+Region: us-central1
+IPv4 range: 10.0.1.0/24
+
+
+Click Done
+
+⚙️ Subnet 2: App Tier
+
+Click ADD SUBNET again
+Configure:
+
+Name: app-subnet
+Region: us-central1
+IPv4 range: 10.0.2.0/24
+
+
+Click Done
+
+🗄️ Subnet 3: Data Tier
+
+Click ADD SUBNET one more time
+Configure:
+
+Name: data-subnet
+Region: us-central1
+IPv4 range: 10.0.3.0/24
+
+
+Click Done
+
+Step 4: Finalize VPC Creation
+
+Scroll to the bottom and click Create
+⏱️ Allow 1-2 minutes for provisioning
+
+
+🔥 Part 2: Implement Firewall Rules
+Now we're building secure communication channels - the google_compute_firewall resources.
+Navigate to Firewall
+
+In the Navigation menu (☰), go to VPC network → Firewall
+
+🌍 Rule 1: Allow Public HTTP/HTTPS to Web Tier
+Resource: allow-http-https-web
+
+Click CREATE FIREWALL RULE
+Configure:
+
+Name: allow-http-https-web
+Network: Select my-app-vpc
+Direction of traffic: Ingress
+Targets: Specified target tags
+Target tags: web-server
+Source filter: IPv4 ranges
+Source IPv4 ranges: 0.0.0.0/0
+Protocols and ports:
+
+Select Specified protocols and ports
+Check TCP
+Enter 80, 443
+
+
+
+
+Click Create
+
+🔐 Rule 2: Allow SSH to Web Tier
+Resource: allow-ssh-web
+
+Click CREATE FIREWALL RULE
+Configure:
+
+Name: allow-ssh-web
+Network: my-app-vpc
+Direction of traffic: Ingress
+Targets: Specified target tags
+Target tags: web-server
+Source filter: IPv4 ranges
+Source IPv4 ranges: 0.0.0.0/0
+
+⚠️ Production Note: Lock this down to specific IP ranges in production!
+
+
+Protocols and ports:
+
+Select Specified protocols and ports
+Check TCP
+Enter 22
+
+
+
+
+Click Create
+
+🔄 Rule 3: Allow Web Tier to App Tier
+Resource: allow-web-to-app
+
+Click CREATE FIREWALL RULE
+Configure:
+
+Name: allow-web-to-app
+Network: my-app-vpc
+Direction of traffic: Ingress
+Targets: Specified target tags
+Target tags: app-server
+Source filter: Source tags
+Source tags: web-server
+Protocols and ports:
+
+Select Specified protocols and ports
+Check TCP
+Enter 3000
+
+
+
+
+Click Create
+
+🗃️ Rule 4: Allow App Tier to Data Tier
+Resource: allow-app-to-db
+
+Click CREATE FIREWALL RULE
+Configure:
+
+Name: allow-app-to-db
+Network: my-app-vpc
+Direction of traffic: Ingress
+Targets: Specified target tags
+Target tags: db-server
+Source filter: Source tags
+Source tags: app-server
+Protocols and ports:
+
+Select Specified protocols and ports
+Check TCP
+Enter 5432
+
+
+
+
+Click Create
+
+
+✅ Final Verification
+VPC Verification
+
+ Navigate to VPC Networks
+ Confirm my-app-vpc is listed and active
+
+Subnet Verification
+
+ Click on my-app-vpc
+ Verify all three subnets exist with correct IP ranges:
+
+web-subnet → 10.0.1.0/24
+app-subnet → 10.0.2.0/24
+data-subnet → 10.0.3.0/24
+
+
+
+Firewall Rules Verification
+
+ Navigate to Firewall page
+ Filter by network: my-app-vpc
+ Confirm all four rules are present:
+
+allow-http-https-web
+allow-ssh-web
+allow-web-to-app
+allow-app-to-db
+
+
+ Click into each rule to verify source/target tags and ports
+
+
+🎯 Architecture Summary
+Internet
+    ↓
+┌─────────────────────────────────────────────────────────┐
+│                    my-app-vpc                           │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐  │
+│  │  Web Tier   │───▶│   App Tier  │───▶│  Data Tier  │  │
+│  │ 10.0.1.0/24 │    │ 10.0.2.0/24 │    │ 10.0.3.0/24 │  │
+│  │   :80,443   │    │    :3000    │    │    :5432    │  │
+│  │    :22      │    │             │    │             │  │
+│  └─────────────┘    └─────────────┘    └─────────────┘  │
+└─────────────────────────────────────────────────────────┘
+📚 Next Steps
+Once your network is deployed, you can:
+
+Deploy compute instances to each subnet with appropriate network tags
+Configure load balancers for the web tier
+Set up database instances in the data tier
+Implement monitoring and logging
+
+
+🔧 This guide corresponds directly to your Terraform configuration and can be used for learning, testing, or emergency manual deployments.
