@@ -1,45 +1,22 @@
-output "database_instance_name" {
-  description = "Name of the Cloud SQL database instance."
-  value       = google_sql_database_instance.secure_postgres_db.name
+# -----------------------------------------------------------------------------
+# MODULE 3: OUTPUT DEFINITIONS
+# -----------------------------------------------------------------------------
+# This file defines the output values from the Terraform module. These outputs
+# can be used to connect other resources or for querying deployment details.
+# -----------------------------------------------------------------------------
+
+output "cloud_sql_instance_name" {
+  description = "The full name of the created Cloud SQL instance."
+  value       = google_sql_database_instance.my_app_db.name
 }
 
-output "database_instance_connection_name" {
-  description = "Connection name for the Cloud SQL instance."
-  value       = google_sql_database_instance.secure_postgres_db.connection_name
+output "cloud_sql_instance_private_ip" {
+  description = "The private IP address of the Cloud SQL instance, used for connections from within the VPC."
+  value       = google_sql_database_instance.my_app_db.private_ip_address
 }
 
-output "database_private_ip" {
-  description = "Private IP address of the database instance."
-  value       = google_sql_database_instance.secure_postgres_db.private_ip_address
-  sensitive   = true
+output "db_password_secret_name" {
+  description = "The resource name of the Secret Manager secret containing the database root password."
+  value       = google_secret_manager_secret.db_password_secret.secret_id
 }
 
-output "database_name" {
-  description = "Name of the application database."
-  value       = google_sql_database.appdb.name
-}
-
-output "app_database_user" {
-  description = "Application database username."
-  value       = google_sql_user.appuser.name
-}
-
-output "readonly_database_user" {
-  description = "Read-only database username."
-  value       = google_sql_user.readonly_user.name
-}
-
-output "storage_bucket_name" {
-  description = "Name of the application data storage bucket."
-  value       = google_storage_bucket.app_data_bucket.name
-}
-
-output "storage_bucket_url" {
-  description = "URL of the application data storage bucket."
-  value       = google_storage_bucket.app_data_bucket.url
-}
-
-output "db_connection_secret_name" {
-  description = "Name of the Secret Manager secret containing database connection string."
-  value       = google_secret_manager_secret.db_connection_string.secret_id
-}

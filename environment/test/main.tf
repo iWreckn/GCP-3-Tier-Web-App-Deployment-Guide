@@ -31,3 +31,16 @@ module "iam_security" {
   project_id  = var.project_id
   environment = var.environment
 }
+
+# Call the Data Security module to create our service accounts.
+module "data_security" {
+  source = "../../modules/03-data-security"
+
+  # Pass required variables
+  project_id      = var.project_id
+  region          = var.region
+  vpc_network_id  = module.network_security.vpc_id
+  app_db_password = var.app_db_password
+  # db_name and app_db_user will use the defaults set in the module
+  # You can override them here if needed, e.g., db_name = "my-test-db"
+}
