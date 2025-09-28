@@ -18,3 +18,15 @@ variable "vpc_name" {
   description = "Name of the VPC"
   type        = string
 }
+
+variable "app_db_password" {
+  description = "Password for the application database user."
+  type        = string
+  sensitive   = true
+}
+
+variable "readonly_db_password" {
+  description = "Password for the read-only database user."
+  type        = string
+  sensitive   = true
+}
